@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EOBxtract</title>
+
+    <style>
+        :root {
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #111827;
+            --muted-text: #6b7280;
+            --primary: #2563eb;
+            --success: #16a34a;
+            --shadow: rgba(0,0,0,0.08);
+        }
+
+        body.dark {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --muted-text: #9ca3af;
+            --primary: #3b82f6;
+            --success: #22c55e;
+            --shadow: rgba(0,0,0,0.4);
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        /* Page container */
+        .page-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Header */
+        .app-header {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 30px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .app-icon {
+            width: 70px;
+        }
+
+        .app-title {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        /* Toggle */
+        .toggle {
+            cursor: pointer;
+            font-size: 14px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: var(--card-bg);
+            box-shadow: 0 4px 10px var(--shadow);
+        }
+
+        /* Card */
+        .box {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 720px;
+            padding: 35px 40px;
+            margin-top: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px var(--shadow);
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        select, input[type="file"], button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            margin-bottom: 25px;
+            font-size: 15px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+        }
+
+        .spinner {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            color: var(--muted-text);
+        }
+
+        .success {
+            color: var(--success);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            max-width: 720px;
+            margin: 30px auto 10px;
+            font-size: 12px;
+            color: var(--muted-text);
+            text-align: center;
+            line-height: 1.6;
+        }
+    </style>
+
+    <script>
+        function showLoader() {
+            document.getElementById("submitBtn").disabled = true;
+            document.getElementById("spinner").style.display = "block";
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle("dark");
+            localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+        }
+
+        window.onload = function () {
+            if (localStorage.getItem("theme") === "dark") {
+                document.body.classList.add("dark");
+            }
+        }
+    </script>
+</head>
+
+<body>
+<div class="page-container">
+
+    <!-- Header -->
+    <div class="app-header">
+        <div class="header-left">
+            <img src="{{ url_for('static', filename='extractor_icon.png') }}" class="app-icon" alt="EOBxtract">
+            <span class="app-title">EOBxtract</span>
+        </div>
+
+        <div class="toggle" onclick="toggleTheme()">
+            🌙 / ☀️
+        </div>
+    </div>
+
+    <!-- Card -->
+    <div class="box">
+
+        {% if error %}
+            <p style="color:red">{{ error }}</p>
+        {% endif %}
+
+        {% if success %}
+            <p class="success">✅ Processing completed successfully</p>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" onsubmit="showLoader()">
+
+            <label>EOB Type</label>
+            <select name="eob_type">
+    {% for eob in eob_types %}
+        <option value="{{ eob }}">
+            {% if eob == "Auto" %}
+                Auto Detect
+            {% else %}
+                {{ eob }}
+            {% endif %}
+        </option>
+    {% endfor %}
+</select>
+
+            <label>Upload Document</label>
+            <input type="file" name="pdf" accept=".pdf" required>
+
+            <button id="submitBtn" type="submit">Submit</button>
+        </form>
+
+        <div id="spinner" class="spinner">
+            ⏳ Processing, please wait...
+        </div>
+
+        {% if download_ready %}
+            <a href="/download">
+                <button style="background: var(--success); margin-top: 15px;">
+                    📥 Download Excel
+                </button>
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+        ⚠️ <strong>Disclaimer:</strong> This application is intended for internal and informational use only.
+        Extracted data is generated using OCR and rule-based logic and may require manual verification.
+        The developers assume no responsibility for incorrect interpretations or financial decisions
+        based on the output.
+    </div>
+
+</div>
+</body>
+</html>
